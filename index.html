@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Pixel Village</title>
+
+  <!-- Retro arcade font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css?v=6" />
+</head>
+<body>
+  <div id="app">
+
+    <!-- ===================== TOP BAR / HUD ===================== -->
+    <header id="topbar">
+      <h1 class="logo">PIXEL<span>VILLAGE</span></h1>
+
+      <ul class="stats" aria-live="polite">
+        <li class="stat" id="stat-coins" title="Coins: spend them to build">
+          <img data-icon="icon_coin" alt="" />
+          <div>
+            <span class="label">Coins</span>
+            <span class="value" data-stat="coins">0</span>
+            <span class="delta" data-stat="income">+0</span>
+          </div>
+        </li>
+        <li class="stat" id="stat-population" title="Population / housing capacity">
+          <img data-icon="icon_pop" alt="" />
+          <div>
+            <span class="label">Pop</span>
+            <span class="value" data-stat="population">0/0</span>
+          </div>
+        </li>
+        <li class="stat" id="stat-happiness" title="Happiness multiplies all income (0.5x - 1.5x)">
+          <img data-icon="icon_happy" alt="" />
+          <div>
+            <span class="label">Happy</span>
+            <span class="value" data-stat="happiness">50%</span>
+            <span class="meter"><span id="happy-fill"></span></span>
+          </div>
+        </li>
+        <li class="stat" id="stat-materials" title="Materials: needed for houses and shops">
+          <img data-icon="icon_mat" alt="" />
+          <div>
+            <span class="label">Wood</span>
+            <span class="value" data-stat="materials">0</span>
+            <span class="delta delta-mat" data-stat="matIncome">+0</span>
+          </div>
+        </li>
+      </ul>
+
+      <div class="tick" title="Time until next economy tick">
+        <span class="label">Next tick <span data-stat="tickSecs">5.0s</span></span>
+        <div class="tick-bar"><div id="tick-fill"></div></div>
+      </div>
+
+      <div class="raid" id="raid-status" data-state="calm" title="Town Hall health. Build defense towers [F] to stop raids.">
+        <span class="label" data-stat="raidLabel">Next raid</span>
+        <span class="raid-value" data-stat="raidValue">3:00</span>
+        <div class="hall-bar"><div id="hall-fill"></div></div>
+        <span class="raid-enemy" data-stat="raidEnemy">Goblins</span>
+        <div class="raid-controls">
+          <button type="button" id="raid-call" class="raid-btn call" title="Start the next raid right now [R] — the earlier you call it, the bigger the coin bonus">&#9876;&#65039; Call [R]</button>
+          <button type="button" id="raid-auto" class="raid-btn mode" aria-pressed="true" title="Timed raids on/off [Shift+R]. With them off, raids only come when you call them.">Auto: ON</button>
+        </div>
+        <span class="raid-elsewhere" data-stat="raidElsewhere"></span>
+      </div>
+
+      <button type="button" id="tick-upgrade" class="upgrade" title="Spend coins to make economy ticks faster [T]">
+        <span class="label">Speed Lv <span data-stat="tickLevel">1</span></span>
+        <span class="upgrade-cost"><span class="c-coins" data-stat="tickCost">300</span></span>
+      </button>
+
+      <button type="button" id="tower-upgrade" class="upgrade tower-btn" title="Upgrade ALL defense towers in every biome: more damage, faster shots, longer range [Y]">
+        <span class="label">🏹 <span class="btn-long">Towers </span>Lv <span data-stat="towerLevel">1</span></span>
+        <span class="upgrade-cost"><span class="c-coins" data-stat="towerCost">400</span></span>
+      </button>
+
+      <button type="button" id="open-upgrades" class="upgrade upgrades-btn" title="Town upgrades: coins, wood, housing, happiness and more [U]">
+        <span class="label">Upgrades</span>
+        <span class="upgrade-cost" data-stat="upgradesReady">View</span>
+      </button>
+
+      <div class="save-controls">
+        <button type="button" id="save-btn" class="save-btn" title="Save progress (also autosaves) [Ctrl+S]">Save</button>
+        <button type="button" id="clear-btn" class="save-btn warn" title="Remove every building and road (keeps coins, upgrades & tech)">Clear</button>
+        <button type="button" id="newgame-btn" class="save-btn danger" title="Delete save and start over">New</button>
+      </div>
+    </header>
+
+    <!-- ===================== SIDEBAR / TOOLBAR ===================== -->
+    <aside id="sidebar">
+      <div class="sidebar-head">
+        <h2 id="build-title">Build</h2>
+        <button type="button" id="open-tech" class="tech-btn" title="View the Tech Tree">🔬 Tech Tree</button>
+      </div>
+      <div id="toolbar" role="toolbar" aria-label="Building tools"></div>
+
+      <section id="info-panel" aria-live="polite"></section>
+
+      <section class="help">
+        <h2>Controls</h2>
+        <ul>
+          <li><kbd>Hold+Drag</kbd> Place many</li>
+          <li><kbd>WASD</kbd>/<kbd>Arrows</kbd> Pan</li>
+          <li><kbd>R-Drag</kbd> Pan</li>
+          <li><kbd>Wheel</kbd>/<kbd>Q</kbd><kbd>E</kbd> Zoom</li>
+          <li><kbd>1-0</kbd> Tools <kbd>T</kbd> Speed up</li>
+          <li><kbd>U</kbd> Upgrades <kbd>B</kbd> Biomes</li>
+          <li><kbd>F</kbd> Defense tower <kbd>Y</kbd> Upgrade towers</li>
+          <li><kbd>R</kbd> Call raid now <kbd>Shift</kbd>+<kbd>R</kbd> Auto raids</li>
+          <li><kbd>G</kbd> Grid <kbd>Esc</kbd> Cancel</li>
+        </ul>
+      </section>
+    </aside>
+
+    <!-- ===================== GAME CANVAS ===================== -->
+    <main id="game-container">
+      <div id="toast" role="status"></div>
+      <nav id="biome-tabs" aria-label="Biomes"></nav>
+    </main>
+
+    <!-- ===================== TECH TREE MODAL ===================== -->
+    <div id="tech-overlay" class="tech-overlay" hidden>
+      <div id="tech-modal" class="tech-modal" role="dialog" aria-label="Tech Tree" aria-modal="true">
+        <header>
+          <h2>Tech Tree</h2>
+          <p class="tech-sub">Spend coins to permanently unlock new structures, in order.</p>
+          <button type="button" id="tech-close" class="tech-close" aria-label="Close">✕</button>
+        </header>
+        <div id="tech-list" class="tech-list"></div>
+      </div>
+    </div>
+
+    <!-- ===================== UPGRADES MODAL ===================== -->
+    <div id="upgrade-overlay" class="tech-overlay" hidden>
+      <div class="tech-modal" role="dialog" aria-label="Town Upgrades" aria-modal="true">
+        <header>
+          <h2>Town Upgrades</h2>
+          <p class="tech-sub">Permanent boosts for your whole village. Each level costs more.</p>
+          <button type="button" id="upgrade-close" class="tech-close" aria-label="Close">✕</button>
+        </header>
+        <div id="upgrade-list" class="tech-list"></div>
+      </div>
+    </div>
+
+    <!-- ===================== BIOMES MODAL ===================== -->
+    <div id="biome-overlay" class="tech-overlay" hidden>
+      <div class="tech-modal" role="dialog" aria-label="Biomes" aria-modal="true">
+        <header>
+          <h2>Biomes</h2>
+          <p class="tech-sub">Unlock new lands in order. Each one is bigger than the last, with its own buildings. Every biome keeps earning while you're away.</p>
+          <button type="button" id="biome-close" class="tech-close" aria-label="Close">✕</button>
+        </header>
+        <div id="biome-list" class="tech-list"></div>
+      </div>
+    </div>
+
+    <!-- ===================== GAME OVER ===================== -->
+    <div id="gameover-overlay" class="tech-overlay gameover-overlay" hidden>
+      <div class="tech-modal gameover-modal" role="alertdialog" aria-label="Game Over" aria-modal="true">
+        <header>
+          <h2>Your Town Hall Fell!</h2>
+          <p class="tech-sub">GAME OVER</p>
+        </header>
+        <div class="gameover-body">
+          <p id="gameover-text"></p>
+          <button type="button" id="gameover-restart" class="tier-unlock">Start a New Village</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Phaser 3 -->
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+  <script src="game.js?v=6"></script>
+</body>
+</html>
